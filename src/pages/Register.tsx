@@ -23,7 +23,7 @@ export default function Register(){
 
             navigate("/login", {state:{message:"Registration successful! Please Login."}})
         }catch(err:any){
-            setError(err.response?.data?.message || "Failed to register, Please try again")
+            setError(err.message || err.error || "Failed to register, Please try again")
         }finally{
             setLoading(false)
         }

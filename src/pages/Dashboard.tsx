@@ -172,7 +172,6 @@ export default function Dashboard() {
 
         if (!destination || !activeBoard) return;
 
-        // If dropped in the exact same position, do nothing
         if (
             destination.droppableId === source.droppableId &&
             destination.index === source.index
@@ -191,16 +190,10 @@ export default function Dashboard() {
         const sourceCards = Array.from(sourceCol.cards || []);
         const destCards = sourceColIndex === destColIndex ? sourceCards : Array.from(destCol.cards || []);
 
-        // Remove card from source column
         const [movedCard] = sourceCards.splice(source.index, 1);
-
-        // Update target columnId on the card object
         const updatedCard = { ...movedCard, columnId: destCol._id };
-
-        // Insert card into destination column
         destCards.splice(destination.index, 0, updatedCard);
 
-        // Update Local State Optimistically
         const updatedColumns = [...activeBoard.columns];
         if (sourceColIndex === destColIndex) {
             updatedColumns[sourceColIndex] = { ...sourceCol, cards: sourceCards };
@@ -211,7 +204,6 @@ export default function Dashboard() {
 
         setActiveBoard({ ...activeBoard, columns: updatedColumns });
 
-        // Persist change to backend
         try {
             await updateCardApi(draggableId, {
                 columnId: destCol._id,
@@ -220,7 +212,6 @@ export default function Dashboard() {
             fetchActivities(activeBoard._id);
         } catch (err: any) {
             console.error("Failed to persist drag reorder:", err);
-            // Revert on error
             fetchBoardContent(activeBoard._id);
         }
     };
@@ -346,16 +337,17 @@ export default function Dashboard() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 text-white flex flex-col">
+        <div className="min-h-screen bg-slate-950 text-white flex flex-col w-full overflow-x-hidden">
             {/* Header Navbar */}
-            <header className="flex justify-between items-center p-4 border-b border-slate-800 bg-slate-900 px-6">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-purple-600/10 border border-purple-500/20 rounded-xl text-purple-400">
+            <header className="flex flex-col md:flex-row justify-between items-stretch md:items-center p-4 border-b border-slate-800 bg-slate-900 px-4 md:px-6 gap-4">
+                {/* Left section: Logo & Boards */}
+                <div className="flex items-center gap-3 overflow-x-auto pb-1 md:pb-0">
+                    <div className="p-2 bg-purple-600/10 border border-purple-500/20 rounded-xl text-purple-400 shrink-0">
                         <LayoutDashboard className="w-6 h-6" />
                     </div>
 
                     {boards.length > 0 && (
-                        <div className="relative">
+                        <div className="relative shrink-0">
                             <select
                                 value={activeBoard?._id || ""}
                                 onChange={(e) => {
@@ -376,7 +368,7 @@ export default function Dashboard() {
 
                     <button
                         onClick={() => setIsBoardModalOpen(true)}
-                        className="p-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-purple-400 transition-colors"
+                        className="p-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-purple-400 transition-colors shrink-0"
                         title="Create New Board"
                     >
                         <FolderPlus className="w-4 h-4" />
@@ -385,7 +377,7 @@ export default function Dashboard() {
                     {activeBoard && (
                         <button
                             onClick={() => setIsDeleteBoardModalOpen(true)}
-                            className="p-2 bg-slate-950 hover:bg-slate-800 border border-red-500/20 rounded-xl text-red-400 transition-colors"
+                            className="p-2 bg-slate-950 hover:bg-slate-800 border border-red-500/20 rounded-xl text-red-400 transition-colors shrink-0"
                             title="Delete Current Board"
                         >
                             <Trash2 className="w-4 h-4" />
@@ -393,19 +385,20 @@ export default function Dashboard() {
                     )}
                 </div>
 
-                <div className="flex items-center gap-3">
+                {/* Right section: Action Buttons */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
                     {activeBoard && (
                         <>
                             <button
                                 onClick={() => setIsInviteModalOpen(true)}
-                                className="flex items-center gap-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 px-4 py-2 rounded-xl text-sm text-purple-400 transition-colors"
+                                className="flex items-center gap-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 px-3 py-2 rounded-xl text-xs md:text-sm text-purple-400 transition-colors shrink-0"
                             >
                                 <UserPlus className="w-4 h-4" /> Invite
                             </button>
 
                             <button
                                 onClick={() => setIsColumnModalOpen(true)}
-                                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
+                                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-3 py-2 rounded-xl text-xs md:text-sm font-semibold transition-colors shrink-0"
                             >
                                 <Plus className="w-4 h-4" /> Add Column
                             </button>
@@ -414,24 +407,24 @@ export default function Dashboard() {
 
                     <button
                         onClick={() => setIsChangePasswordOpen(true)}
-                        className="flex items-center gap-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 px-4 py-2 rounded-xl text-sm text-slate-300 transition-colors"
+                        className="flex items-center gap-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 px-3 py-2 rounded-xl text-xs md:text-sm text-slate-300 transition-colors shrink-0"
                         title="Change Password"
                     >
-                        <KeyRound className="w-4 h-4 text-purple-400" /> Password
+                        <KeyRound className="w-4 h-4 text-purple-400" /> <span className="hidden sm:inline">Password</span>
                     </button>
 
                     <button
                         onClick={() => setShowActivityDrawer(!showActivityDrawer)}
-                        className="flex items-center gap-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 px-4 py-2 rounded-xl text-sm text-slate-300 transition-colors"
+                        className="flex items-center gap-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 px-3 py-2 rounded-xl text-xs md:text-sm text-slate-300 transition-colors shrink-0"
                     >
-                        <History className="w-4 h-4 text-purple-400" /> Activity Log
+                        <History className="w-4 h-4 text-purple-400" /> <span className="hidden sm:inline">Activity Log</span>
                     </button>
 
                     <button
                         onClick={handleLogout}
-                        className="flex items-center gap-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 px-4 py-2 rounded-xl text-sm text-slate-300 transition-colors"
+                        className="flex items-center gap-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 px-3 py-2 rounded-xl text-xs md:text-sm text-slate-300 transition-colors shrink-0"
                     >
-                        <LogOut className="w-4 h-4" /> Logout
+                        <LogOut className="w-4 h-4" /> <span className="hidden sm:inline">Logout</span>
                     </button>
                 </div>
             </header>
@@ -502,7 +495,6 @@ export default function Dashboard() {
                                                     </button>
                                                 </div>
 
-                    
                                                 <div className="space-y-3 overflow-y-auto pr-1 flex-1 min-h-[150px]">
                                                     {col.cards?.map((card: Card, index: number) => (
                                                         <Draggable key={card._id} draggableId={card._id} index={index}>

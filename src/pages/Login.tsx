@@ -1,109 +1,135 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { Mail, Lock, LogIn, AlertCircle } from "lucide-react";
 import { loginUserApi } from "../services/authServices";
-import { UserPlus, Mail, Lock, AlertCircle } from "lucide-react";
 
-export default function Login(){
-    const [email, setEmail] = useState("")
-    const [password, setPassword]= useState("")
-    const [error, setError] = useState("")
-    const [loading,setLoading] = useState(false)
-
-
+export default function Login() {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
     const navigate = useNavigate();
 
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setError("")
-        setLoading(true)
-
-        try{
-            const res = await loginUserApi({email,password})
-            const token = res.data?.token || res.token
-            if(token){
-                localStorage.setItem("token",token)
-                navigate("/dashboard")
-            }
-            else{
-                setError("Login response didn't include an authentication token")
-            }
-        }catch(err:any){
-            setError(err.message || err.error || "Failed to login, Please check your credentials")
-        }finally{
-            setLoading(false)
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        if (!email.trim() || !password.trim()) {
+            setError("Please fill in both email and password.");
+            return;
         }
-    }
+
+        try {
+            setLoading(true);
+            setError("");
+
+            const res = await loginUserApi({ email: email.trim(), password });
+
+            // Robust token extraction covering all MERN response formats
+            const token = res?.token || res?.accessToken || res?.data?.token || res?.user?.token;
+
+            if (token) {
+                localStorage.setItem("token", token);
+                navigate("/dashboard");
+                return;
+            }
+
+            // Handle unverified account response message
+            if (res?.message) {
+                if (res.message.toLowerCase().includes("verify")) {
+                    navigate(`/verify-email?email=${encodeURIComponent(email.trim())}`);
+                    return;
+                }
+                setError(res.message);
+            } else {
+                setError("Login failed. Missing authentication token.");
+            }
+        } catch (err: any) {
+            const errorMessage = err.message || err.error || "An error occurred during login.";
+            
+            if (errorMessage.toLowerCase().includes("verify")) {
+                navigate(`/verify-email?email=${encodeURIComponent(email.trim())}`);
+                return;
+            }
+
+            setError(errorMessage);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
-        <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-            <div className="max-w-md md:max-w-lg w-full bg-slate-900 border border-slate-800 rounded-2xl shadow-xl p-8">
-                <div className="text-center mb-8">
-                    <div className="inline-flex p-3 bg-purple-600/10 border border-purple-500/20 rounded-xl text-purple-400 mb-3">
-                    <UserPlus className="w-8 h-8"/>
+        <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-8 space-y-6 shadow-xl">
+                <div className="text-center space-y-2">
+                    <div className="mx-auto w-12 h-12 bg-purple-600/10 border border-purple-500/20 rounded-2xl flex items-center justify-center text-purple-400">
+                        <LogIn className="w-6 h-6" />
                     </div>
-                    <h1 className="text-3xl font-bold text-white">Log in</h1>
-                    {/* <p className="text-slate-400 text-sm mt-1">Join your team and manage tasks efficiently</p> */}
+                    <h2 className="text-2xl font-bold">Log in</h2>
                 </div>
 
                 {error && (
-                    <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-400 text-sm">
-                        <AlertCircle className="w-5 h-5 shrink-0"/>
+                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs text-red-400 flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 shrink-0" />
                         <span>{error}</span>
                     </div>
                 )}
 
-                <form onSubmit={handleLogin} className="space-y-5">
-
+                <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-xs font-medium text-slate-300 uppercase mb-2">Email address</label>
+                        <label className="block text-xs font-semibold text-slate-300 mb-1">
+                            EMAIL ADDRESS
+                        </label>
                         <div className="relative">
-                            <Mail className="absolute left-3.5 top-3.5 w-5 h-5 text-slate-500"/>
                             <input
-                            type="email"
-                            required
-                            value={email}
-                            onChange={(e)=> setEmail(e.target.value)}
-                            placeholder="name@example.com"
-                            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 pl-11 text-white placeholder-slate-600 focus:outline-none focus:border-purple-500 transition-colors text-sm"
+                                type="email"
+                                required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="name@example.com"
+                                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500"
                             />
+                            <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-3.5" />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-medium text-slate-300 uppercase mb-2">Password</label>
+                        <div className="flex justify-between items-center mb-1">
+                            <label className="block text-xs font-semibold text-slate-300">
+                                PASSWORD
+                            </label>
+                            <Link to="/forgot-password" className="text-xs text-purple-400 hover:underline">
+                                Forgot password?
+                            </Link>
+                        </div>
                         <div className="relative">
-                            <Lock className="absolute left-3.5 top-3.5 w-5 h-5 text-slate-500"/>
                             <input
-                            type="password"
-                            required
-                            value={password}
-                            onChange={(e)=> setPassword(e.target.value)}
-                            placeholder="••••••••"
-                            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 pl-11 text-white placeholder-slate-600 focus:outline-none focus:border-purple-500 transition-colors text-sm"
+                                type="password"
+                                required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="••••••••"
+                                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500"
                             />
+                            <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-3.5" />
                         </div>
                     </div>
+
                     <button
-                    type="submit"
-                    disabled={loading}
-                     className="w-full bg-purple-600 hover:bg-purple-500 text-white font-medium py-3 rounded-xl transition-colors shadow-lg shadow-purple-600/25 disabled:opacity-50 text-sm"
-                     >
-                        {loading ? "Sign in...":"Login"}
-                     </button>
+                        type="submit"
+                        disabled={loading}
+                        className="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold transition-colors disabled:opacity-50"
+                    >
+                        {loading ? "Logging in..." : "Login"}
+                    </button>
                 </form>
-                <p className="text-center text-slate-400 text-sm mt-6">
+
+                <div className="text-center pt-2 border-t border-slate-800 text-xs text-slate-400">
                     Don't have an account?{" "}
-                    <Link to="/register" className="text-purple-400 hover:underline font-medium">
-                         Sign Up
+                    <Link to="/register" className="text-purple-400 font-semibold hover:underline">
+                        Sign Up
                     </Link>
-                </p>
-                <p className="text-center text-slate-400 text-sm mt-2">
-                    Forgotten password?{"  "}
-                    <Link to="/" className="text-purple-400 hover:underline font-medium">
-                        Click here
-                    </Link>
-                </p>
+                </div>
             </div>
         </div>
-    )
+    );
 }

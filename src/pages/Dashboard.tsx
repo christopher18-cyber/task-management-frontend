@@ -502,7 +502,7 @@ export default function Dashboard() {
                                                     </button>
                                                 </div>
 
-                                                {/* Task Cards List */}
+                    
                                                 <div className="space-y-3 overflow-y-auto pr-1 flex-1 min-h-[150px]">
                                                     {col.cards?.map((card: Card, index: number) => (
                                                         <Draggable key={card._id} draggableId={card._id} index={index}>

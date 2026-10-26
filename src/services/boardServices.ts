@@ -1,5 +1,5 @@
 import { api } from "../api/axios";
-import type { Card, Board } from "../types/kanbas";
+import type {  Board } from "../types/kanbas";
 
 export async function getBoardsApi():Promise<Board[]>{
     try {

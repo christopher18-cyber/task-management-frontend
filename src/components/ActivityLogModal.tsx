@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { X, History, Loader2, AlertCircle } from "lucide-react";
 import { getActivityLogsApi } from "../services/activityServices";
 

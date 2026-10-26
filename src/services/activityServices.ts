@@ -1,5 +1,4 @@
 import { api } from "../api/axios";
-import type { ActivityLog } from "../types/kanbas";
 
 // export async function getBoardActivitiesApi(boardId:string):Promise<ActivityLog>{
 //     try{
